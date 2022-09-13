@@ -2,6 +2,8 @@
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 namespace LinkInterceptor;
 
 static class Program {
@@ -60,6 +62,28 @@ static class Program {
                 SendMessage(f.Handle, WM_NCLBUTTONDOWN, HTCAPTION, 0);
             }
         };
+
+        f.KeyDown += (object? sender, KeyEventArgs e) =>
+        {
+            // save config (fullscreen, position, ...)
+            if (e.KeyCode == Keys.S) {
+
+                bool fullscreen;
+                if (f.FormBorderStyle == FormBorderStyle.FixedDialog) {
+                    fullscreen = false;
+                } else {
+                    fullscreen = true;
+                }
+
+                // Save config in json-file
+                Config config = new Config(fullscreen);
+
+                string configJson = JsonSerializer.Serialize(config);
+                Console.WriteLine("ConfigJson: " + configJson);
+                File.WriteAllText(@"C:\ProgramData\Blackout\config.json", configJson);
+            }
+        };
+
         Application.EnableVisualStyles();
         Application.Run(f);
     }
