@@ -18,16 +18,31 @@ static class Program {
         static extern int SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
 
         Form f = new Form();
-        f.BackColor = Color.Black;
-        f.FormBorderStyle = FormBorderStyle.None;
+        f.BackColor = Color.Black;    
         var screen = Screen.PrimaryScreen;
         f.StartPosition = FormStartPosition.Manual;
-        f.Bounds = screen.Bounds;
-        f.Location = screen.WorkingArea.Location;
+        f.Bounds = screen.Bounds;      
         f.TopMost = true;
-        // f.DoubleClick += (object? sender, System.EventArgs e) =>
-        // {
-        // };
+
+        // Loads last saved config at startup
+        try{                
+            string configJson = File.ReadAllText(@"C:\ProgramData\Blackout\config.json");
+            Config config = JsonSerializer.Deserialize<Config>(configJson);
+
+            if (config.fullscreen) {
+                f.FormBorderStyle = FormBorderStyle.None;
+            }else{
+                f.FormBorderStyle = FormBorderStyle.FixedDialog;
+            }
+
+            f.Location = new Point(config.xPos, config.yPos);
+            f.SetBounds(config.xPos, config.yPos, config.width, config.height);
+
+        }catch{
+            f.FormBorderStyle = FormBorderStyle.None;
+            f.Location = screen.WorkingArea.Location;
+        }
+
         f.MouseDown += (object? sender, MouseEventArgs e) =>
         {
             if (e.Button == MouseButtons.Middle) {
@@ -67,17 +82,23 @@ static class Program {
         {
             // save config (fullscreen, position, ...)
             if (e.KeyCode == Keys.S) {
+                
+                // Save config as object
+                Config config = new Config();        
 
-                bool fullscreen;
                 if (f.FormBorderStyle == FormBorderStyle.FixedDialog) {
-                    fullscreen = false;
+                    config.fullscreen = false;
                 } else {
-                    fullscreen = true;
+                    config.fullscreen = true;
                 }
 
-                // Save config in json-file
-                Config config = new Config(fullscreen);
+                config.xPos = f.Location.X;
+                config.yPos = f.Location.Y;
+                
+                config.width = f.Width;
+                config.height = f.Height;
 
+                // Save config in json-file
                 string configJson = JsonSerializer.Serialize(config);
                 Console.WriteLine("ConfigJson: " + configJson);
                 File.WriteAllText(@"C:\ProgramData\Blackout\config.json", configJson);

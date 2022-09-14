@@ -1,9 +1,7 @@
 class Config {
-
     public bool fullscreen { get; set; }
-
-    public Config(bool fullscreen) {
-        this.fullscreen = fullscreen; 
-        Console.WriteLine("ClassData: " + this.fullscreen);
-    }
+    public int xPos { get; set; }
+    public int yPos { get; set; }
+    public int width { get; set; }
+    public int height { get; set; }
 }
